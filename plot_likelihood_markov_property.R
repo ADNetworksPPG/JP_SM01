@@ -102,10 +102,10 @@ for(i in 1:length(time_step)) {
   resolution <- 0.04*time_step[i]
   resolutionLabel[i] <- sub("[.]","_",as.character(resolution))
   
-  control_plot_data <- read.csv(paste0("control_mouse_behavior_markov_order_likelihood_sub_communities_time_resolution_",resolutionLabel[i],"second.csv"), header = TRUE)
+  control_plot_data <- read.csv(paste0(getwd(), "/updated_analyses_control_mouse_behavior_markov_order_likelihood_sub_communities_time_resolution_",resolutionLabel[i],"_seconds.csv"), header = TRUE)
   control_plot_data %<>% mutate(condition=rep("control", nrow(.)))
   
-  disease_plot_data <- read.csv(paste0("disease_mouse_behavior_markov_order_likelihood_sub_communities_time_resolution_",resolutionLabel[i],"second.csv"), header = TRUE)
+  disease_plot_data <- read.csv(paste0("updated_analyses_disease_mouse_behavior_markov_order_likelihood_sub_communities_time_resolution_",resolutionLabel[i],"_seconds.csv"), header = TRUE)
   disease_plot_data %<>% mutate(condition=rep("disease", nrow(.)))
   
   #model 1 vs model 0 - control
@@ -167,8 +167,8 @@ disease_pseudo_bayes_factors %<>% as.data.frame()
 row.names(disease_pseudo_bayes_factors) <- paste0("resolution_", resolutionLabel)
 colnames(disease_pseudo_bayes_factors) <- c("order1_vs_order0", "order2_vs_order1", "order2_vs_order0", "order3_vs_order2", "order3_vs_order1")
 
-write.csv(control_pseudo_bayes_factors, "control_pseudo_bayes_factors_resolution_0_64_seconds.csv", row.names = FALSE)
-write.csv(disease_pseudo_bayes_factors, "disease_pseudo_bayes_factors_resolution_0_64_seconds.csv", row.names = FALSE)
+write.csv(control_pseudo_bayes_factors, "updated_analyses_control_pseudo_bayes_factors_resolution_0_64_seconds.csv", row.names = TRUE)
+write.csv(disease_pseudo_bayes_factors, "updated_analyses_disease_pseudo_bayes_factors_resolution_0_64_seconds.csv", row.names = TRUE)
 
 control_pseudo_bayes_factors <- matrix(NA, length(time_step), 6)
 control_pseudo_bayes_factors_sex0 <- matrix(NA, length(time_step), 6)
@@ -183,11 +183,18 @@ for(i in 1:length(time_step)) {
   resolution <- 0.04*time_step[i]
   resolutionLabel[i] <- sub("[.]","_",as.character(resolution))
   
-  control_plot_data <- read.csv(paste0("control_mouse_behavior_markov_order_likelihood_sub_communities_time_resolution_",resolutionLabel[i],"second.csv"), header = TRUE)
-  control_plot_data %<>% mutate(condition=rep("control", nrow(.)))
+  control_plot_data <- read.csv(paste0("updated_analyses_control_mouse_behavior_markov_order_likelihood_sub_communities_time_resolution_",resolutionLabel[i],"_seconds.csv"), header = TRUE)
+  control_plot_data %<>% mutate(markov_order = 0:(nrow(.)-1)) %>% 
+    pivot_longer(cols=starts_with("mid"), names_to = "mouse_id", values_to = "log_likelihood") %>%
+    mutate(condition=rep("control", nrow(.))) %>%
+    merge(., gender_data, all.x=TRUE)
   
-  disease_plot_data <- read.csv(paste0("disease_mouse_behavior_markov_order_likelihood_sub_communities_time_resolution_",resolutionLabel[i],"second.csv"), header = TRUE)
-  disease_plot_data %<>% mutate(condition=rep("disease", nrow(.)))
+
+  disease_plot_data <- read.csv(paste0("updated_analyses_disease_mouse_behavior_markov_order_likelihood_sub_communities_time_resolution_",resolutionLabel[i],"_seconds.csv"), header = TRUE)
+  disease_plot_data %<>% mutate(markov_order = 0:(nrow(.)-1)) %>% 
+    pivot_longer(cols=starts_with("mid"), names_to = "mouse_id", values_to = "log_likelihood") %>%
+    mutate(condition=rep("disease", nrow(.))) %>%
+    merge(., gender_data, all.x=TRUE)
   
   temp_count <- 1
   for(o1 in 0:2) {
@@ -244,7 +251,7 @@ group <- c("all_control", "female_control", "male_control", "all_disease", "fema
 pseudo_bayes_factor %<>% mutate(group=group) %>% select(c(7,1:6))
 
 pseudo_bayes_factor %>%
-  write.csv(., "log_pseudo_bayes_factors_resolution_0_64_seconds.csv")
+  write.csv(., "updated_analyses_log_pseudo_bayes_factors_resolution_0_64_seconds.csv")
 View(control_pseudo_bayes_factors)
 View(disease_pseudo_bayes_factors)
 
